@@ -1,0 +1,12 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - "{{ lookup('env','AWS_REGION') | default('us-east-1', true) }}"
+filters:
+  tag:Name: InstanciaNginx
+hostnames:
+  - ip-address
+compose:
+  ansible_host: public_ip_address
+keyed_groups:
+  - key: tags.Name
+    prefix: tag_Name_

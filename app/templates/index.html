@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>To‑Do List</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; margin: 2rem; }
+      h1 { margin-bottom: 1rem; }
+      form { margin: 0; }
+      .row { display: flex; gap: .5rem; align-items: center; }
+      .tasks { margin-top: 1rem; }
+      .task { display: flex; align-items: center; gap: .75rem; padding: .5rem 0; border-bottom: 1px solid #eee; }
+      .task.done .title { text-decoration: line-through; color: #888; }
+      button { cursor: pointer; }
+      small { color: #666; }
+    </style>
+  </head>
+  <body>
+    <h1>To‑Do List</h1>
+
+    <form class="row" action="/add" method="post">
+      <input type="text" name="title" placeholder="Nova tarefa" required style="flex:1; padding:.5rem;" />
+      <button type="submit">Adicionar</button>
+    </form>
+
+    <div class="tasks">
+      {% if tasks %}
+        {% for t in tasks %}
+        <div class="task {% if t.done %}done{% endif %}">
+          <form action="/toggle/{{ t.id }}" method="post">
+            <button type="submit">{% if t.done %}↩︎{% else %}✓{% endif %}</button>
+          </form>
+          <span class="title">{{ t.title }}</span>
+          <small>· {{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+          <form action="/delete/{{ t.id }}" method="post" style="margin-left:auto;">
+            <button type="submit">🗑</button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p><em>Nenhuma tarefa ainda.</em></p>
+      {% endif %}
+    </div>
+
+  </body>
+  </html>

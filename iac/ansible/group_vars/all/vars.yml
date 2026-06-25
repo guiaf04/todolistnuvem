@@ -1,0 +1,6 @@
+---
+# Variáveis não sensíveis (podem ser versionadas)
+sqlalchemy_echo: "false"
+
+# Diretório da app no remoto
+app_dir: "/home/ubuntu/todo-app/parte_04"

@@ -1,0 +1,10 @@
+---
+# Arquivo de exemplo para Ansible Vault (NÃO criptografado)
+# 1) Copie para vault.yml
+# 2) Edite os valores
+# 3) (Opcional recomendado) Criptografe: ansible-vault encrypt group_vars/all/vault.yml
+
+vault_db_host: "rds-endpoint.amazonaws.com"
+vault_db_name: "todo"
+vault_db_user: "postgres"
+vault_db_password: "changeme"

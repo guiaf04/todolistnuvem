@@ -1,0 +1,12 @@
+# Terraform artefatos
+iac/terraform/.terraform/
+iac/terraform/*.tfstate
+iac/terraform/*.tfstate.*
+iac/terraform/.terraform.lock.hcl
+
+# Ansible Vault e senhas locais
+iac/ansible/group_vars/all/vault.yml
+iac/ansible/.vault_pass.txt
+
+# Arquivo de ambiente na EC2 (não versionar credenciais)
+.env

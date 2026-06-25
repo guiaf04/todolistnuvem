@@ -1,0 +1,11 @@
+---
+- name: Provisionar Docker e implantar aplicação To‑Do
+  hosts: tag_Name__InstanciaNginx
+  gather_facts: true
+  vars:
+    # Caminho do diretório da prática no host remoto
+    app_dir: "/home/ubuntu/todo-app/parte_04"
+    # Caminho da pasta parte_04 no controlador (máquina que roda o Ansible)
+    project_root: "{{ playbook_dir | dirname | dirname }}"
+  roles:
+    - docker

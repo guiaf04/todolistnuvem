@@ -1,0 +1,36 @@
+name: Deploy da Aplicação To-Do (Parte 04)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código (opcional)
+        uses: actions/checkout@v4
+
+      - name: Implantar na EC2 via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            # Diretório da app na EC2 (ajuste se necessário)
+            APP_DIR=~/todo-app/parte_04
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+            # Presume-se que o repositório já foi clonado acima de parte_04 (~/todo-app).
+            # O arquivo .env pode ser gerado previamente via Ansible (Vault) ou
+            # provisionado manualmente neste diretório antes do primeiro deploy.
+            git pull || true
+            docker compose build
+            docker compose up -d
+            docker image prune -f
+
+# Observação importante:
+# Para ativar este workflow de verdade, mova este arquivo para a pasta
+# raiz do repositório em `.github/workflows/deploy.yml`.
