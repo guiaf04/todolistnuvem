@@ -5,7 +5,39 @@ on:
     branches: [ main ]
 
 jobs:
+  # Job 1: constrói a imagem e executa os testes; só em caso de sucesso libera o deploy
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Build da imagem Docker (validação do Dockerfile)
+        run: |
+          docker build -t todo-app:ci .
+
+      - name: Executar testes dentro do contêiner
+        run: |
+          # Monta o diretório da prática no contêiner e tenta rodar testes.
+          # Se pytest não estiver instalado, tenta instalar rapidamente no runtime do contêiner.
+          docker run --rm \
+            -v "$PWD/parte_04":/app \
+            -w /app \
+            todo-app:ci \
+            sh -euc '
+              python -m pip install -q pytest || true;
+              if [ -d tests ] || ls -1 test_*.py *_test.py >/dev/null 2>&1; then
+                pytest -q;
+              else
+                echo "Nenhum teste encontrado; realizando smoke check";
+                python -m compileall -q app;
+              fi
+            '
+
+  # Job 2: deploy — depende do build-and-test
   deploy:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do código (opcional)
@@ -30,7 +62,3 @@ jobs:
             docker compose build
             docker compose up -d
             docker image prune -f
-
-# Observação importante:
-# Para ativar este workflow de verdade, mova este arquivo para a pasta
-# raiz do repositório em `.github/workflows/deploy.yml`.
