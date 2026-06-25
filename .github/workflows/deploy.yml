@@ -64,4 +64,4 @@ jobs:
       - name: Construir a imagem e recarregar a aplicação
         run: |
           ssh -i ~/.ssh/id_rsa "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
-            "cd ~/todo-app/parte_04 && docker compose up -d --build"
+            "cd ~/todo-app/ && docker compose up -d --build"
