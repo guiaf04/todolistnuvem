@@ -13,8 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build da imagem Docker (validação do Dockerfile)
-        run: |
-          docker build -t todo-app:ci .
+        run: docker build -t todo-app:ci .
 
       - name: Executar testes dentro do contêiner
         run: |
@@ -40,25 +39,29 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do código (opcional)
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Implantar na EC2 via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            # Diretório da app na EC2 (ajuste se necessário)
-            APP_DIR=~/todo-app/parte_04
-            mkdir -p "$APP_DIR"
-            cd "$APP_DIR"
-            # Presume-se que o repositório já foi clonado acima de parte_04 (~/todo-app).
-            # O arquivo .env pode ser gerado previamente via Ansible (Vault) ou
-            # provisionado manualmente neste diretório antes do primeiro deploy.
-            git pull || true
-            docker compose build
-            docker compose up -d
-            docker image prune -f
+      - name: Configurar a chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Copiar o código para a EC2 (sem apagar .env)
+        run: |
+          # Copia APENAS o conteúdo de parte_04/ para o destino correspondente
+          # e protege o arquivo .env já existente no servidor (gerado via Ansible/Vault).
+          # O uso de filtros 'protect' (P) garante que .env não seja removido pelo --delete.
+          rsync -avz --delete \
+            --exclude='.git' \
+            --filter='P .env' \
+            --filter='P */.env' \
+            -e "ssh -i ~/.ssh/id_rsa" \
+            ./ "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/todo-app/"
+
+      - name: Construir a imagem e recarregar a aplicação
+        run: |
+          ssh -i ~/.ssh/id_rsa "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
+            "cd ~/todo-app/parte_04 && docker compose up -d --build"
